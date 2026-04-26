@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scroll-Driven Video Prototype</title>
+  <style>
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --color-bg: #0a0a0a;
+      --color-text: #e8e8e8;
+      --color-muted: #666;
+    }
+
+    html {
+      scroll-behavior: auto; /* GSAP handles scroll */
+    }
+
+    body {
+      background: var(--color-bg);
+      color: var(--color-text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* ─── Hero Section — sticky video container ─── */
+    .hero {
+      position: relative;
+      height: 400vh; /* scroll space: 4x viewport height */
+      background: #000;
+    }
+
+    .hero-sticky {
+      position: sticky;
+      top: 0;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .hero-video-wrapper {
+      width: 100%;
+      height: 100%;
+      position: relative;
+    }
+
+    #hero-video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* Overlay text */
+    .hero-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .hero-title {
+      font-size: clamp(2rem, 5vw, 4.5rem);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      color: #fff;
+      text-align: center;
+      opacity: 0;
+      transform: translateY(30px);
+    }
+
+    .hero-subtitle {
+      font-size: clamp(0.9rem, 1.5vw, 1.2rem);
+      color: rgba(255,255,255,0.6);
+      margin-top: 1rem;
+      text-align: center;
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    /* Progress bar */
+    .progress-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #c4a265, #e8d5a8);
+      z-index: 100;
+      width: 0%;
+      transform-origin: left;
+    }
+
+    /* Scroll indicator */
+    .scroll-hint {
+      position: absolute;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 3;
+      color: rgba(255,255,255,0.4);
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .scroll-hint-arrow {
+      width: 20px;
+      height: 20px;
+      border-right: 1.5px solid rgba(255,255,255,0.3);
+      border-bottom: 1.5px solid rgba(255,255,255,0.3);
+      transform: rotate(45deg);
+      animation: bounce-down 2s ease-in-out infinite;
+    }
+
+    @keyframes bounce-down {
+      0%, 100% { transform: rotate(45deg) translateY(0); }
+      50% { transform: rotate(45deg) translateY(6px); }
+    }
+
+    /* ─── Content Section — after video ─── */
+    .content {
+      position: relative;
+      z-index: 10;
+      background: var(--color-bg);
+      min-height: 100vh;
+      padding: 6rem 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .content h2 {
+      font-size: clamp(1.5rem, 3vw, 2.5rem);
+      font-weight: 600;
+      margin-bottom: 2rem;
+    }
+
+    .content p {
+      max-width: 600px;
+      line-height: 1.7;
+      color: var(--color-muted);
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+
+    /* Debug panel */
+    .debug {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      background: rgba(0,0,0,0.8);
+      color: #0f0;
+      font-family: monospace;
+      font-size: 0.7rem;
+      padding: 0.75rem 1rem;
+      border-radius: 6px;
+      z-index: 999;
+      line-height: 1.6;
+      min-width: 180px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Progress bar -->
+  <div class="progress-bar" id="progress-bar"></div>
+
+  <!-- Hero: scroll-driven video -->
+  <section class="hero" id="hero">
+    <div class="hero-sticky">
+      <div class="hero-video-wrapper">
+        <video
+          id="hero-video"
+          muted
+          playsinline
+          preload="auto"
+          src="assets/hero-car-headlight.mp4"
+        ></video>
+      </div>
+      <div class="hero-overlay" id="hero-overlay">
+        <h1 class="hero-title" id="hero-title">Precision in Motion</h1>
+        <p class="hero-subtitle" id="hero-subtitle">Scroll to explore</p>
+      </div>
+      <div class="scroll-hint" id="scroll-hint">
+        <span>Scroll</span>
+        <div class="scroll-hint-arrow"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Content after video -->
+  <section class="content">
+    <h2>Video Complete ✓</h2>
+    <p>
+      If you scrolled here and the video played smoothly from start to finish,
+      the prototype works. The video's <code>currentTime</code> was driven
+      entirely by GSAP ScrollTrigger — no autoplay, no time-based playback.
+    </p>
+    <p>
+      This confirms: scroll position → video frame seeking via ScrollTrigger
+      is production-viable. Next step: replace this stock clip with AI-generated
+      frames and integrate into the real site.
+    </p>
+  </section>
+
+  <!-- Debug panel -->
+  <div class="debug" id="debug">
+    <div>Scroll: <span id="dbg-scroll">0</span>%</div>
+    <div>Video: <span id="dbg-time">0.00</span>s / <span id="dbg-duration">?</span>s</div>
+    <div>Frame: <span id="dbg-frame">0</span></div>
+    <div>FPS: <span id="dbg-fps">—</span></div>
+  </div>
+
+  <!-- GSAP + ScrollTrigger -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.7/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.7/dist/ScrollTrigger.min.js"></script>
+
+  <script>
+    gsap.registerPlugin(ScrollTrigger);
+
+    const video = document.getElementById('hero-video');
+    const progressBar = document.getElementById('progress-bar');
+    const debugScroll = document.getElementById('dbg-scroll');
+    const debugTime = document.getElementById('dbg-time');
+    const debugDuration = document.getElementById('dbg-duration');
+    const debugFrame = document.getElementById('dbg-frame');
+    const debugFps = document.getElementById('dbg-fps');
+    const heroTitle = document.getElementById('hero-title');
+    const heroSubtitle = document.getElementById('hero-subtitle');
+    const scrollHint = document.getElementById('scroll-hint');
+
+    // FPS counter
+    let frameCount = 0;
+    let lastFpsTime = performance.now();
+    function measureFps() {
+      frameCount++;
+      const now = performance.now();
+      if (now - lastFpsTime >= 1000) {
+        debugFps.textContent = frameCount;
+        frameCount = 0;
+        lastFpsTime = now;
+      }
+      requestAnimationFrame(measureFps);
+    }
+    requestAnimationFrame(measureFps);
+
+    // Wait for video metadata
+    video.addEventListener('loadedmetadata', () => {
+      const duration = video.duration;
+      debugDuration.textContent = duration.toFixed(2);
+
+      console.log(`[Prototype] Video loaded: ${duration.toFixed(2)}s, ${video.videoWidth}×${video.videoHeight}`);
+
+      // ─── Core: ScrollTrigger → video.currentTime ───
+      const videoTween = gsap.to(video, {
+        currentTime: duration,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: '#hero',
+          start: 'top top',
+          end: 'bottom bottom',
+          scrub: 0.5, // smooth lag
+          onUpdate: (self) => {
+            const progress = self.progress;
+
+            // Debug
+            debugScroll.textContent = (progress * 100).toFixed(1);
+            debugTime.textContent = video.currentTime.toFixed(2);
+            debugFrame.textContent = Math.floor(video.currentTime * 24); // 24fps
+
+            // Progress bar
+            gsap.set(progressBar, { width: `${progress * 100}%` });
+          }
+        }
+      });
+
+      // ─── Title fade in (early scroll) ───
+      gsap.to(heroTitle, {
+        opacity: 1,
+        y: 0,
+        duration: 1,
+        scrollTrigger: {
+          trigger: '#hero',
+          start: 'top top',
+          end: '15% top',
+          scrub: true,
+        }
+      });
+
+      // ─── Subtitle fade in (slightly later) ───
+      gsap.to(heroSubtitle, {
+        opacity: 1,
+        y: 0,
+        duration: 1,
+        scrollTrigger: {
+          trigger: '#hero',
+          start: '5% top',
+          end: '20% top',
+          scrub: true,
+        }
+      });
+
+      // ─── Text + scroll hint fade out (mid-scroll) ───
+      gsap.to([heroTitle, heroSubtitle, scrollHint], {
+        opacity: 0,
+        scrollTrigger: {
+          trigger: '#hero',
+          start: '40% top',
+          end: '55% top',
+          scrub: true,
+        }
+      });
+    });
+
+    // Video must be paused (no autoplay) — we drive currentTime via GSAP
+    video.pause();
+
+    // Error handling
+    video.addEventListener('error', (e) => {
+      console.error('[Prototype] Video error:', e);
+      debugTime.textContent = 'ERROR';
+    });
+  </script>
+</body>
+</html>
